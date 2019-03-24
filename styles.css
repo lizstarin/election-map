@@ -10,7 +10,7 @@ body {
 }
 
 .map-container {
-	width: 950px;
+	width: 900px;
 	height: 550px;
 }
 
@@ -59,4 +59,14 @@ path {
 .popup .eyebrow {
 	text-transform: uppercase;
 	font-size: .8em;
+}
+
+.winner {
+	background-color: yellow;
+}
+
+.winner::before {
+/*	width: 10px;
+	height: 10px;
+	content: url('check.svg');*/
 }

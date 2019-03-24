@@ -18,7 +18,7 @@ var map = (function() {
 
 	var getStateVoteTotal = function(state) {
 		var stateResults = getResults(state);
-		var total = 0
+		var total = 0;
 		for (candidate in stateResults) {
 			total += stateResults[candidate].votes;
 		}
@@ -137,10 +137,27 @@ var map = (function() {
 				.style('display', 'block')
 				.select('.state-name').text(state);
 
-			for (candidate in stateResults) {
-				var stats = stateResults[candidate];
-				popup.select('.results').append('p').text(candidate + '(' + stats.parties + '): ' + stats.votes);
+			var pointSpread = getRDPointSpread(state).toFixed(2);
+			var winningParty = pointSpread > 0 ? 'D' : 'R';
+			var redBlue = pointSpread > 0 ? color(40) : color(-40);
+			popup.select('.winning-party')
+				.text(' (' + winningParty + ', +' + Math.abs(pointSpread) + '%)')
+				.style('color', redBlue);
+
+			candidates = Object.values(stateResults).sort(function(a, b) {
+				return b.votes - a.votes;
+			});
+
+			for (candidate of candidates) {
+				console.log(candidate);
+				popup.select('.results')
+					.append('p')
+					.attr('class', 'candidate')
+					.text(candidate.name + ' (' + candidate.parties + '): ' + candidate.votes);
 			}
+
+			d3.select('.candidate').attr('class', 'winner');
+
 		});
 
 		d3.selectAll('path').on('mouseout', function(d) { 
@@ -184,6 +201,7 @@ var map = (function() {
 						stateYear[normalizedName].votes += stateYear[candidate].votes;
 					} else {
 						stateYear[normalizedName] = stateYear[candidate];
+						stateYear[candidate].name = normalizedName;
 					}
 					delete stateYear[candidate];
 				}
