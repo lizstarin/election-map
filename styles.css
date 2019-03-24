@@ -40,22 +40,23 @@ path {
 	content: url('right.svg');
 }
 
-.tooltip {
+.popup {
 	display: none;
 	position: absolute;
 	font-size: .5em;
 	margin: 20px 0;
 }
 
-.tooltip p {
-	margin: 0;
+.popup p {
+	margin: 5px 0;
+	font-size: .8em;
 }
 
-.tooltip h2 {
+.popup h2 {
 	margin: 0 0 10px 0;
 }
 
-.tooltip .eyebrow {
+.popup .eyebrow {
 	text-transform: uppercase;
 	font-size: .8em;
 }

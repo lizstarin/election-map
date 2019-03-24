@@ -127,22 +127,26 @@ var map = (function() {
 	};
 
 	var addStateMouseovers = function() {
-		var tooltip = d3.select('.tooltip');
+		var popup = d3.select('.popup');
 
 		d3.selectAll('path').on('mouseover', function(d) { 
 			var state = d.properties.NAME;
+			var stateResults = getResults(state);
 
-			tooltip
+			popup
 				.style('display', 'block')
 				.select('.state-name').text(state);
 
-			tooltip.select('.r-results').text('R votes: ' + getRVotes(state));
-			tooltip.select('.d-results').text('D votes: ' + getDVotes(state));
-
-			console.log(getResults(state));
+			for (candidate in stateResults) {
+				var stats = stateResults[candidate];
+				popup.select('.results').append('p').text(candidate + '(' + stats.parties + '): ' + stats.votes);
+			}
 		});
 
-		d3.selectAll('path').on('mouseout', function(d) { tooltip.style('display', 'none'); });
+		d3.selectAll('path').on('mouseout', function(d) { 
+			popup.style('display', 'none'); 
+			popup.select('.results').text('');
+		});
 	};
 
 
