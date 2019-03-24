@@ -282,3 +282,9 @@ const NEBRASKA_2012 = {
     'Obama, Barack H.': 0
 };
 
+const CANDIDATES = {
+    '2004': { 'Democratic': 'Kerry, John F.', 'Republican': 'Bush, George W.' },
+    '2008': { 'Democratic': 'Obama, Barack H.', 'Republican': 'McCain, John S.' },
+    '2012': { 'Democratic': 'Obama, Barack H.', 'Republican': 'Romney, Mitt' }
+}
+

@@ -2,8 +2,6 @@
 <html>
 	<head>
 		<script src="https://d3js.org/d3.v5.min.js"></script>
-		<script src="https://d3js.org/d3-array.v1.min.js"></script>
-		<script src="https://d3js.org/d3-geo.v1.min.js"></script>
 		<script src="./lodash.min.js"></script>
 		<script src="./constants.js"></script>
 		<script src="./main.js"></script>
@@ -12,9 +10,19 @@
 
 	<body>
 		<div id="container">
-	    <svg>
+	    <svg class="map-container">
 	      <g class="map"></g>
 	    </svg>
+			<nav>
+				<div class="year-selector">
+					<span class="backwards"></span>
+					<span class="year"></span>
+					<span class="forwards"></span>
+				</div>
+				<div class="legend">
+					<svg class="color-bar"></svg>
+				</div>
+			</nav>
 		</div>
 	</body>
 </html>
