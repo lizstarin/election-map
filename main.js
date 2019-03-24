@@ -1,146 +1,195 @@
-var projection = d3.geoAlbersUsa();
-var path = d3.geoPath().projection(projection);
-var results, color;
+var map = (function() {
+	var projection = d3.geoAlbersUsa();
+	var path = d3.geoPath().projection(projection);
+	var results, color;
+	var year = '2004';
 
-var getVotes = function(year, state_abbrev, candidate) {
-	var key = year + '_' + state_abbrev;
-	return results[key][candidate].votes;
-};
 
-var getStateVoteTotal = function(year, state_abbrev) {
-	var key = year + '_' + state_abbrev;
-	var total = 0
-	for (candidate in results[key]) {
-		total += results[key][candidate].votes;
-	}
-	return total;
-};
+	// DOING THE VOTE MATH
 
-var getRDPointSpread = function(year, state_abbrev) {
-	var votesR = getVotes(year, state_abbrev, CANDIDATES[year]['Republican']);
-	var votesD = getVotes(year, state_abbrev, CANDIDATES[year]['Democratic']);
-	var total = getStateVoteTotal(year, state_abbrev);
+	var getResults = function(state) {
+		var key = year + '_' + constants.STATE_NTOA[state];
+		return results[key];	
+	};
 
-	return (votesD - votesR) / total * 100;
-};
+	var getVotes = function(state, candidate) {
+		return getResults(state)[candidate].votes;
+	};
 
-var createMap = function(mapData) {
-	const geoJson = mapData.geojson;
-	const results2004 = mapData.json2004;
-	const results2008 = mapData.json2008;
-	const results2012 = mapData.json2012;
+	var getStateVoteTotal = function(state) {
+		var stateResults = getResults(state);
+		var total = 0
+		for (candidate in stateResults) {
+			total += stateResults[candidate].votes;
+		}
+		return total;
+	};
 
-	var u = d3.select('#container g.map')
-		.selectAll('path')
-		.data(geoJson.features);
+	var getRDPointSpread = function(state) {
+		var votesR = getRVotes(state);
+		var votesD = getDVotes(state);
+		var total = getStateVoteTotal(state);
 
-	u.enter()
-  .append('path')
-  .attr('d', path);
+		return (votesD - votesR) / total * 100;
+	};
 
-  const years = ['2004', '2008', '2012'];
-  var yearCounter = 0;
+	var getRVotes = function(state) {
+		return getVotes(state, constants.CANDIDATES[year]['Republican']);
+	};
 
-  defineColor();
-  createLegend();
-  updateMap(years[yearCounter % 3]);
+	var getDVotes = function(state) {
+		return getVotes(state, constants.CANDIDATES[year]['Democratic']);
+	};
 
-  d3.select('.backwards').on('click', function() {
-  	yearCounter -= 1;
-  	updateMap(years[yearCounter % 3]);
-  })
 
-  d3.select('.forwards').on('click', function() {
-  	yearCounter += 1;
-  	updateMap(years[yearCounter % 3]);
-  })
-};
+	// DRAWING THE MAP
 
-var defineColor = function() {
-	color = d3.scaleSequential(d3.interpolateRdBu).domain([-50, 50]);
-};
+	var createMap = function(mapData) {
+		const geoJson = mapData.geojson;
+		const results2004 = mapData.json2004;
+		const results2008 = mapData.json2008;
+		const results2012 = mapData.json2012;
 
-var updateMap = function(year) {
-	colorStates(year);
-	updateLegend(year);
-};
+		var u = d3.select('#container g.map')
+			.selectAll('path')
+			.data(geoJson.features);
 
-var createLegend = function() {
-  var barWidth = 300;
-  var barHeight = 30;
+		u.enter()
+	  	.append('path')
+	  	.attr('d', path);
 
-  var colorBar = d3.select('.color-bar')
-    .attr('width', barWidth)
-    .attr('height', barHeight)
-    .append('g');
+	  defineColor();
+	  createLegend();
+	  updateMap();
+	  addEventListeners();
+	};
 
-  colorBar.selectAll('lines')
-  		.data(d3.range(barWidth), function(d) { return d; })
-  	.enter().append('rect')
-  		.attr('class', 'line')
-  		.attr('x', function(d, i) { return i; })
-  		.attr('y', 0)
-  		.attr('height', barHeight)
-  		.attr('width', 1)
-  		.style('fill', function(d, i) { return color(d / 3 - 50); });
-};
+	var defineColor = function() {
+		color = d3.scaleSequential(d3.interpolateRdBu).domain([-50, 50]);
+	};
 
-var updateLegend = function(year) {
-	d3.select('.year').text(year);
-};
+	var createLegend = function() {
+	  var barWidth = 300;
+	  var barHeight = 30;
 
-var colorStates = function(year) {
-  d3.selectAll('path').style('fill', function(d) {
-  	var pointSpread = getRDPointSpread(year, STATE_NTOA[d.properties.NAME]);
-  	return color(pointSpread);
-  });
-};
+	  var colorBar = d3.select('.color-bar')
+	    .attr('width', barWidth)
+	    .attr('height', barHeight)
+	    .append('g');
 
-var getMapData = function() {
-	// if (localStorage.getItem('mapData')) {
-	// 	var mapData = JSON.parse(localStorage.getItem('mapData'));
-	// 	createMap(mapData);
-	// } else {
-		var geojson = d3.json('states.json');
-		var json2004 = d3.json('results_2004.json');
-		var json2008 = d3.json('results_2008.json');
-		var json2012 = d3.json('results_2012.json');
-		Promise.all([geojson, json2004, json2008, json2012]).then(function(data) {
-			var mapData = {
-				geojson: data[0],
-				json2004: cleanResults(data[1]),
-				json2008: cleanResults(data[2]),
-				json2012: cleanResults(data[3])
-			}
+	  colorBar.selectAll('lines')
+	  		.data(d3.range(barWidth), function(d) { return d; })
+	  	.enter().append('rect')
+	  		.attr('class', 'line')
+	  		.attr('x', function(d, i) { return i; })
+	  		.attr('y', 0)
+	  		.attr('height', barHeight)
+	  		.attr('width', 1)
+	  		.style('fill', function(d, i) { return color(d / 3 - 50); });
+	};
 
-			results = Object.assign({}, mapData.json2004, mapData.json2008, mapData.json2012);
+	var updateMap = function() {
+		colorStates();
+		updateLegend();
+	};
 
-			// localStorage.setItem('mapData', JSON.stringify(mapData));
-			createMap(mapData); 
+	var colorStates = function() {
+	  d3.selectAll('path').style('fill', function(d) {
+	  	var pointSpread = getRDPointSpread(d.properties.NAME);
+	  	return color(pointSpread);
+	  });
+	};
+
+	var updateLegend = function() {
+		d3.select('.year').text(year);
+	};
+
+	var addEventListeners = function() {
+		addYearControls();
+		addStateMouseovers();
+	};
+
+	var addYearControls = function() {
+		const years = ['2004', '2008', '2012'];
+		yearIndex = years.indexOf(year);
+
+		d3.select('.backwards').on('click', function() {
+			yearIndex = (yearIndex - 1) % 3;
+			year = years[yearIndex];
+			updateMap();
+	  })
+
+	  d3.select('.forwards').on('click', function() {
+	  	yearIndex = (yearIndex + 1) % 3;
+	  	year = years[yearIndex];
+	  	updateMap();
+	  })
+	};
+
+	var addStateMouseovers = function() {
+		var tooltip = d3.select('.tooltip');
+
+		d3.selectAll('path').on('mouseover', function(d) { 
+			var state = d.properties.NAME;
+
+			tooltip
+				.style('display', 'block')
+				.select('.state-name').text(state);
+
+			tooltip.select('.r-results').text('R votes: ' + getRVotes(state));
+			tooltip.select('.d-results').text('D votes: ' + getDVotes(state));
+
+			console.log(getResults(state));
 		});
-	// }
-};
 
-// This would ideally happen on the backend
-var cleanResults = function(resultsJson) {
-	var resultsCopy = _.cloneDeep(resultsJson);
+		d3.selectAll('path').on('mouseout', function(d) { tooltip.style('display', 'none'); });
+	};
 
-	for(k in resultsCopy) {
-		var stateYear = resultsCopy[k];
-		for(candidate in stateYear) {
-			if (CANDIDATE_NAMES.hasOwnProperty(candidate)) {
-				var normalizedName = CANDIDATE_NAMES[candidate];
-				if (stateYear.hasOwnProperty(normalizedName)) {
-					stateYear[normalizedName].votes += stateYear[candidate].votes;
-				} else {
-					stateYear[normalizedName] = stateYear[candidate];
+
+	// THINGS THAT SHOULD HAPPEN ON THE BACKEND
+
+	var getMapData = function() {
+			var geojson = d3.json('states.json');
+			var json2004 = d3.json('results_2004.json');
+			var json2008 = d3.json('results_2008.json');
+			var json2012 = d3.json('results_2012.json');
+			Promise.all([geojson, json2004, json2008, json2012]).then(function(data) {
+				var mapData = {
+					geojson: data[0],
+					json2004: cleanResults(data[1]),
+					json2008: cleanResults(data[2]),
+					json2012: cleanResults(data[3])
 				}
-				delete stateYear[candidate];
+
+				results = Object.assign({}, mapData.json2004, mapData.json2008, mapData.json2012);
+
+				createMap(mapData); 
+			});
+	};
+
+	// Handles inconsistencies in candidate names
+	var cleanResults = function(resultsJson) {
+		var resultsCopy = _.cloneDeep(resultsJson);
+
+		for(k in resultsCopy) {
+			var stateYear = resultsCopy[k];
+			for(candidate in stateYear) {
+				if (constants.CANDIDATE_NAMES.hasOwnProperty(candidate)) {
+					var normalizedName = constants.CANDIDATE_NAMES[candidate];
+					if (stateYear.hasOwnProperty(normalizedName)) {
+						stateYear[normalizedName].votes += stateYear[candidate].votes;
+					} else {
+						stateYear[normalizedName] = stateYear[candidate];
+					}
+					delete stateYear[candidate];
+				}
 			}
 		}
-	}
 
-	return resultsCopy;
-};
+		return resultsCopy;
+	};
 
-getMapData();
+	return { getMapData: getMapData };
+})();
+
+map.getMapData();

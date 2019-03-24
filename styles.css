@@ -39,3 +39,23 @@ path {
 	height: 30px;
 	content: url('right.svg');
 }
+
+.tooltip {
+	display: none;
+	position: absolute;
+	font-size: .5em;
+	margin: 20px 0;
+}
+
+.tooltip p {
+	margin: 0;
+}
+
+.tooltip h2 {
+	margin: 0 0 10px 0;
+}
+
+.tooltip .eyebrow {
+	text-transform: uppercase;
+	font-size: .8em;
+}
