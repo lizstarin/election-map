@@ -14,18 +14,17 @@ body {
 	height: 550px;
 }
 
+.state {
+	fill: #eee;
+	stroke: #fff;
+}
+
 nav {
 	padding: 20px;
 }
 
 .color-bar {
-/*	width: 300px;
-	height: 30px;*/
-}
-
-path {
-	fill: #eee;
-	stroke: #fff;
+	overflow: visible;
 }
 
 .backwards {
@@ -63,10 +62,4 @@ path {
 
 .winner {
 	background-color: yellow;
-}
-
-.winner::before {
-/*	width: 10px;
-	height: 10px;
-	content: url('check.svg');*/
 }

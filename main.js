@@ -17,10 +17,10 @@ var map = (function() {
 	};
 
 	var getStateVoteTotal = function(state) {
-		var stateResults = getResults(state);
+		var stateResults = Object.values(getResults(state));
 		var total = 0;
-		for (candidate in stateResults) {
-			total += stateResults[candidate].votes;
+		for (candidate of stateResults) {
+			total += candidate.votes;
 		}
 		return total;
 	};
@@ -56,6 +56,7 @@ var map = (function() {
 
 		u.enter()
 	  	.append('path')
+	  	.attr('class', 'state')
 	  	.attr('d', path);
 
 	  defineColor();
@@ -85,7 +86,20 @@ var map = (function() {
 	  		.attr('y', 0)
 	  		.attr('height', barHeight)
 	  		.attr('width', 1)
-	  		.style('fill', function(d, i) { return color(d / 3 - 50); });
+	  		.style('fill', function(d, i) { 
+	  				return color(d / 3 - 50); 
+	  		});
+
+	  var legendScale = d3.scaleLinear()
+	  	.domain([-50, 50])
+	  	.range([0, barWidth]);
+
+	  var legendAxis = d3.axisBottom()
+	    .scale(legendScale);
+
+	  colorBar.append('g')
+	  	.call(legendAxis)
+	  	.attr('transform', 'translate(0,' + barHeight + ')');
 	};
 
 	var updateMap = function() {
@@ -94,7 +108,7 @@ var map = (function() {
 	};
 
 	var colorStates = function() {
-	  d3.selectAll('path').style('fill', function(d) {
+	  d3.selectAll('.state').style('fill', function(d) {
 	  	var pointSpread = getRDPointSpread(d.properties.NAME);
 	  	return color(pointSpread);
 	  });
@@ -149,7 +163,6 @@ var map = (function() {
 			});
 
 			for (candidate of candidates) {
-				console.log(candidate);
 				popup.select('.results')
 					.append('p')
 					.attr('class', 'candidate')
