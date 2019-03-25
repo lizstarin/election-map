@@ -169,7 +169,10 @@ var map = (function() {
 					.text(candidate.name + ' (' + candidate.parties + '): ' + candidate.votes);
 			}
 
-			d3.select('.candidate').attr('class', 'winner');
+			var lightRedBlue = pointSpread > 0 ? color(10) : color(-10);
+			d3.select('.candidate')
+				.attr('class', 'winner')
+				.style('background-color', lightRedBlue);
 
 		});
 
