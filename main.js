@@ -121,6 +121,7 @@ var map = (function() {
 	var addEventListeners = function() {
 		addYearControls();
 		addStateMouseovers();
+		addFormControls();
 	};
 
 	var addYearControls = function() {
@@ -180,6 +181,48 @@ var map = (function() {
 			popup.style('display', 'none'); 
 			popup.select('.results').text('');
 		});
+	};
+
+	var addFormControls = function() {
+		var select = d3.select('form select');
+		Object.keys(constants.STATE_ATON).forEach(function(d) {
+			select.append('option')
+				.attr('value', d)
+				.text(d);
+		});
+
+		d3.select('form .button').on('click', function() {
+			d3.event.preventDefault();
+
+			var params = {
+				candidate: d3.select('#form-candidate').property('value'),
+				state: d3.select('#form-state').property('value'),
+				votes: d3.select('#form-votes').property('value'),
+				year: year
+			}
+
+			d3.select('pre').html(JSON.stringify(params));
+			d3.selectAll('input').property('value', '');
+			d3.select('.button').property('value', 'submit');
+
+			addToResults(params);
+		});
+	};
+
+	var addToResults = function(params) {
+		if(params['candidate'] && params['state'] && params['votes'] && params['year']) {
+			var key = params['year'] + '_' + params['state'];
+			results[key][params['candidate']] = {
+				id: key,
+				year: parseInt(params['year']),
+				name: params['candidate'],
+				abbr: params['state'],
+				state: constants.STATE_ATON[params['state']],
+				votes: params['votes'],
+				parties: 'Write-In'
+			};
+			console.log(results[key]);
+		}
 	};
 
 

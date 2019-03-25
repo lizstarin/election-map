@@ -10,9 +10,26 @@
 
 	<body>
 		<div id="container">
-	    <svg class="map-container">
-	      <g class="map"></g>
-	    </svg>
+			<div class="map-container">
+		    <svg>
+		      <g class="map"></g>
+		    </svg>
+			    <form class="new-results" method="post">
+				    <p class="eyebrow">enter new results</p>
+
+					    	<label for="form-candidate">candidate:</label>
+					    	<input type="text" id="form-candidate">
+
+					    	<label for="form-state">state:</label>
+					    	<select id="form-state"></select>
+
+					    	<label for="form-votes">votes:</label>
+					    	<input type="number" id="form-votes">
+
+				    <p><input type="submit" class="button"></input></p>
+			  </form>
+			  <pre class="debug"></pre>
+		  </div>
 			<nav>
 				<div class="year-selector">
 					<span class="backwards"></span>
