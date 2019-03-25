@@ -62,6 +62,7 @@ var map = (function() {
 	  defineColor();
 	  createLegend();
 	  updateMap();
+	  populateForm();
 	  addEventListeners();
 	};
 
@@ -118,6 +119,19 @@ var map = (function() {
 		d3.select('.year').text(year);
 	};
 
+	var populateForm = function() {
+		populateStatesDropdown();
+	};
+
+	var populateStatesDropdown = function() {
+		var select = d3.select('form select');
+		Object.keys(constants.STATE_ATON).forEach(function(d) {
+			select.append('option')
+				.attr('value', d)
+				.text(d);
+		});
+	}
+
 	var addEventListeners = function() {
 		addYearControls();
 		addStateMouseovers();
@@ -142,71 +156,72 @@ var map = (function() {
 	};
 
 	var addStateMouseovers = function() {
-		var popup = d3.select('.popup');
-
 		d3.selectAll('path').on('mouseover', function(d) { 
 			var state = d.properties.NAME;
-			var stateResults = getResults(state);
-
-			popup
-				.style('display', 'block')
-				.select('.state-name').text(state);
-
-			var pointSpread = getRDPointSpread(state).toFixed(2);
-			var winningParty = pointSpread > 0 ? 'D' : 'R';
-			var redBlue = pointSpread > 0 ? color(40) : color(-40);
-			popup.select('.winning-party')
-				.text(' (' + winningParty + ', +' + Math.abs(pointSpread) + '%)')
-				.style('color', redBlue);
-
-			candidates = Object.values(stateResults).sort(function(a, b) {
-				return b.votes - a.votes;
-			});
-
-			for (candidate of candidates) {
-				popup.select('.results')
-					.append('p')
-					.attr('class', 'candidate')
-					.text(candidate.name + ' (' + candidate.parties + '): ' + candidate.votes);
-			}
-
-			var lightRedBlue = pointSpread > 0 ? color(10) : color(-10);
-			d3.select('.candidate')
-				.attr('class', 'winner')
-				.style('background-color', lightRedBlue);
-
+			displayStateResults(state);
 		});
 
-		d3.selectAll('path').on('mouseout', function(d) { 
-			popup.style('display', 'none'); 
-			popup.select('.results').text('');
+		d3.selectAll('path').on('mouseout', function() { 
+			clearPopup();
 		});
 	};
 
-	var addFormControls = function() {
-		var select = d3.select('form select');
-		Object.keys(constants.STATE_ATON).forEach(function(d) {
-			select.append('option')
-				.attr('value', d)
-				.text(d);
+	var displayStateResults = function(state) {
+		var popup = d3.select('.popup');
+		var stateResults = getResults(state);
+
+		popup.style('display', 'block')
+			.select('.state-name').text(state);
+
+		var pointSpread = getRDPointSpread(state).toFixed(2);
+		var winningParty = pointSpread > 0 ? 'D' : 'R';
+		var redBlue = pointSpread > 0 ? color(40) : color(-40);
+		var lightRedBlue = pointSpread > 0 ? color(10) : color(-10);
+		
+		popup.select('.winning-party')
+			.text(' (' + winningParty + ', +' + Math.abs(pointSpread) + '%)')
+			.style('color', redBlue);
+
+		candidates = Object.values(stateResults).sort(function(a, b) {
+			return b.votes - a.votes;
 		});
 
+		for (candidate of candidates) {
+			popup.select('.results')
+				.append('p')
+				.attr('class', 'candidate')
+				.text(candidate.name + ' (' + candidate.parties + '): ' + candidate.votes);
+		}
+
+		d3.select('.candidate')
+			.attr('class', 'winner')
+			.style('background-color', lightRedBlue);
+	};
+
+	var clearPopup = function() {
+		d3.select('.popup').style('display', 'none') 
+			.select('.results').text('');
+	};
+
+	var addFormControls = function() {
 		d3.select('form .button').on('click', function() {
 			d3.event.preventDefault();
 
-			var params = {
-				candidate: d3.select('#form-candidate').property('value'),
-				state: d3.select('#form-state').property('value'),
-				votes: d3.select('#form-votes').property('value'),
-				year: year
-			}
-
-			d3.select('pre').html(JSON.stringify(params));
-			d3.selectAll('input').property('value', '');
-			d3.select('.button').property('value', 'submit');
-
+			var params = getFormValues();
 			addToResults(params);
+			d3.select('pre').html(JSON.stringify(params));
+
+			clearForm();
 		});
+	};
+
+	var getFormValues = function() {
+		return {
+			candidate: d3.select('#form-candidate').property('value'),
+			state: d3.select('#form-state').property('value'),
+			votes: d3.select('#form-votes').property('value'),
+			year: year
+		}
 	};
 
 	var addToResults = function(params) {
@@ -223,6 +238,11 @@ var map = (function() {
 			};
 			console.log(results[key]);
 		}
+	};
+
+	var clearForm = function() {
+		d3.selectAll('input').property('value', '');
+		d3.select('.button').property('value', 'submit');
 	};
 
 
